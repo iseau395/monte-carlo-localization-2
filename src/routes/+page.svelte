@@ -12,12 +12,13 @@
     let canvas: HTMLCanvasElement | undefined = $state(undefined);
     let input = $state(new InputSystem());
 
+    const particle_count = 1000;
     const distance_1 = new DistanceSensor(9, 0, Math.PI/2);
     const distance_2 = new DistanceSensor(0, 9, 0);
     const distance_3 = new DistanceSensor(-9, 0, -Math.PI/2);
     const distance_4 = new DistanceSensor(0, -9, Math.PI);
     const monte_carlo = new MonteCarlo(distance_1, distance_2, distance_3, distance_4);
-    monte_carlo.initialize(robot.x, robot.y, 1000, robot);
+    monte_carlo.initialize(robot.x, robot.y, particle_count, robot);
 
     onMount(() => input.register_events(window, canvas!));
 
@@ -37,13 +38,13 @@
         ctx.fillRect(0, 0, width, height);
         
         robot.render(ctx);
+        
+        monte_carlo.draw(ctx, robot);
 
         ctx.beginPath();
         ctx.arc(predicted_position[0], predicted_position[1], 1, 0, Math.PI * 2);
         ctx.fillStyle = "#00FF00";
         ctx.fill();
-        
-        monte_carlo.draw(ctx, robot);
 
         robot.move(
             dt * move_speed * (Number(input.is_key_down("w")) - Number(input.is_key_down("s"))),
@@ -87,4 +88,4 @@
 </script>
 
 <AnimatedCanvas {render} bind:input bind:canvas {width} {height} {scale} />
-{total_weight.toFixed(4).padStart(8, "0")}
+{(total_weight / particle_count * 10000000).toFixed(8).padStart(8, "0")}

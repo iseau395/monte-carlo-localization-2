@@ -62,8 +62,8 @@ export class MonteCarlo
     private motion_update(delta_x: number, delta_y: number)
     {
         for (let i = 0; i < this.particles.length; i++) {
-            this.particles[i].x += gaussian_random(delta_x, delta_x * this.odom_stdev);
-            this.particles[i].y += gaussian_random(delta_y, delta_y * this.odom_stdev);
+            this.particles[i].x += gaussian_random(delta_x, Math.max(0.1, delta_x * this.odom_stdev));
+            this.particles[i].y += gaussian_random(delta_y, Math.max(0.1, delta_y * this.odom_stdev));
         }
     }
 
