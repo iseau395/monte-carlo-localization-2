@@ -1,6 +1,6 @@
 import { distance_sensor_max, gaussian_random, height, use_normal_dist, width } from "./constants";
 import { DistanceSensor, predict_distance, Robot } from "./robot";
-import { erf, exp, expDependencies, max, min } from "mathjs";
+import { erf } from "mathjs";
 
 function cdf_normal(x: number, mean: number, standardDeviation: number) {
     return (1 - erf((mean - x ) / (Math.sqrt(2) * standardDeviation))) / 2
