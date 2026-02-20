@@ -7,18 +7,18 @@
     
     let {
         render,
-        input = $bindable(),
+        input = $bindable(undefined),
         canvas = $bindable(undefined),
         width,
         height,
-        scale,
+        scale
     }: {
         render: (ctx: CanvasRenderingContext2D) => void,
-        input: InputSystem,
-        canvas: HTMLCanvasElement | undefined,
+        input?: InputSystem,
+        canvas?: HTMLCanvasElement,
         width: number,
         height: number,
-        scale: number,
+        scale: number
     } = $props();
 
     onMount(() => {

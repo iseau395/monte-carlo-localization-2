@@ -8,9 +8,9 @@ export const distance_sensor_max = 2000 * 0.0393701;
 export const use_normal_dist = false;
 
 // https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
-export function gaussian_random(mean: number, stdev: number) {
-    const u = 1 - Math.random(); // Converting [0,1) to (0,1]
-    const v = Math.random();
+export function gaussian_random(mean: number, stdev: number, rand_1 = Math.random(), rand_2 = Math.random()) {
+    const u = 1 - rand_1; // Converting [0,1) to (0,1]
+    const v = rand_2;
     const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
     // Transform to the desired mean and standard deviation:
     return z * stdev + mean;

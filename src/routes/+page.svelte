@@ -3,7 +3,7 @@
     import { InputSystem } from "$lib/input";
     import { width, height, gaussian_random } from "$lib/constants";
     import { MonteCarlo } from "$lib/monte_carlo"
-    import { DistanceSensor, Robot } from "$lib/robot";
+    import { append_obstacle, DistanceSensor, draw_obstacles, Robot } from "$lib/robot";
     import { onDestroy, onMount } from "svelte";
 
     const scale = 5;
@@ -20,7 +20,16 @@
     const monte_carlo = new MonteCarlo(distance_1, distance_2, distance_3, distance_4);
     monte_carlo.initialize(robot.x, robot.y, particle_count, robot);
 
-    onMount(() => input.register_events(window, canvas!));
+    onMount(() => {
+        input.register_events(window, canvas!);
+
+        input.on_click((ev) => {
+            const x = ev.offsetX / scale;
+            const y = ev.offsetY / scale;
+            
+            append_obstacle(x, y, 5);
+        })
+    });
 
     const move_speed = 60;
     const turn_speed = Math.PI;
@@ -36,6 +45,8 @@
 
         ctx.fillStyle = "#909090";
         ctx.fillRect(0, 0, width, height);
+
+        draw_obstacles(ctx);
         
         robot.render(ctx);
         
@@ -43,7 +54,7 @@
 
         ctx.beginPath();
         ctx.arc(predicted_position[0], predicted_position[1], 1, 0, Math.PI * 2);
-        ctx.fillStyle = "#00FF00";
+        ctx.fillStyle = "#0000FF";
         ctx.fill();
 
         robot.move(
@@ -53,6 +64,10 @@
         );
     }
 
+    // function render_heat_map(ctx: CanvasRenderingContext2D)
+    // {
+    //     monte_carlo.draw_heat_map(ctx, robot);
+    // }
 
     let last_robot_x = robot.x;
     let last_robot_y = robot.y;
@@ -88,4 +103,5 @@
 </script>
 
 <AnimatedCanvas {render} bind:input bind:canvas {width} {height} {scale} />
+<!-- <AnimatedCanvas render={render_heat_map} width={width / 3} height={height / 3} scale={scale * 3} /> -->
 {(total_weight / particle_count * 10000000).toFixed(8).padStart(8, "0")}

@@ -75,13 +75,57 @@ function get_distance_to_line_segment(x: number, y: number, theta: number, point
     return Infinity;
 }
 
-export function predict_distance(x: number, y: number, theta: number)
+function get_distance_to_circle(ray_x: number, ray_y: number, theta: number, center_x: number, center_y: number, r: number)
+{
+    const x = ray_x - center_x;
+    const y = ray_y - center_y;
+
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
+
+    const a = -x * cos - y * sin;
+    const b = Math.sqrt(2 * x * y * sin * cos + (r*r - y*y) * cos*cos + (r*r - x*x) * sin*sin);
+
+    if (a - b > 0)
+    {
+        return a - b;
+    }
+    else if (a + b > 0)
+    {
+        return a + b;
+    }
+    else
+    {
+        return Infinity
+    }
+}
+
+const obstacles: [number, number, number][] = [];
+export function append_obstacle(x: number, y: number, r: number)
+{
+    obstacles.push([x, y, r]);
+}
+export function draw_obstacles(ctx: CanvasRenderingContext2D)
+{
+    for (const obstacle of obstacles)
+    {
+        ctx.beginPath();
+        ctx.arc(obstacle[0], obstacle[1], obstacle[2], 0, Math.PI * 2);
+        ctx.closePath();
+
+        ctx.fillStyle = "#AA00AA";
+        ctx.fill();
+    }
+}
+
+export function predict_distance(x: number, y: number, theta: number, check_obstacles = false)
 {
     const out = Math.min(
         get_distance_to_line_segment(x, y, theta, [0,     0     ], [width, 0     ]),
         get_distance_to_line_segment(x, y, theta, [width, 0     ], [width, height]),
         get_distance_to_line_segment(x, y, theta, [width, height], [0,     height]),
-        get_distance_to_line_segment(x, y, theta, [0,     height], [0,     0     ])
+        get_distance_to_line_segment(x, y, theta, [0,     height], [0,     0     ]),
+        ...(check_obstacles ? obstacles.map(v => get_distance_to_circle(x, y, theta, v[0], v[1], v[2])) : [Infinity])
     );
 
     return out;
@@ -157,6 +201,9 @@ export class DistanceSensor
     y_offset: number;
     theta_offset: number;
 
+    readonly rand_1 = Math.random();
+    readonly rand_2 = Math.random();
+
     constructor(x_offset: number, y_offset: number, theta_offset: number)
     {
         this.x_offset = x_offset;
@@ -174,12 +221,20 @@ export class DistanceSensor
         {
             return 0.5 * 0.5905511811;
         }
+        // if (predicted_distance > 7.874015748)
+        // {
+        //     return (0.05 * predicted_distance);
+        // }
+        // else
+        // {
+        //     return 0.5905511811;
+        // }
     }
 
     get_distance(robot: Robot)
     {
         const [x, y, theta] = this.get_position(robot.x, robot.y, robot.theta);
-        const exact_distance = predict_distance(x, y, theta);
+        const exact_distance = predict_distance(x, y, theta, true);
 
         if (exact_distance > distance_sensor_max)
         {
@@ -187,11 +242,11 @@ export class DistanceSensor
         }
         else if (use_normal_dist)
         {
-            return gaussian_random(exact_distance, DistanceSensor.predict_stdev(exact_distance));
+            return gaussian_random(exact_distance, DistanceSensor.predict_stdev(exact_distance), this.rand_1, this.rand_2);
         }
         else
         {
-            return 0.95 * exact_distance + 0.1 * exact_distance * Math.random();
+            return 0.95 * exact_distance + 0.1 * exact_distance * this.rand_1;
         }
     }
 
@@ -214,7 +269,7 @@ export class DistanceSensor
     {
         const [x, y, theta] = this.get_position(robot.x, robot.y, robot.theta);
 
-        const distance = predict_distance(x, y, theta);
+        const distance = predict_distance(x, y, theta, true);
 
         if (distance < distance_sensor_max)
         {
